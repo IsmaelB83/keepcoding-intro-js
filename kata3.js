@@ -46,7 +46,7 @@ class Card {
             case (value===11):
                 this.character = 'J';   break;
             case (value >= 2  && value <= 10):
-                this.character = value; break;
+                this.character = `${value}`; break;
             default:
                 console.log(suit, value);
                 throw `Carta ${value} incorrecta`;
@@ -110,6 +110,22 @@ class CardDeck {
     }
 
     /**
+     * Extrae la carta específica del mazo. Si no la encuentra devuelve null
+     * @param {*} suit Palo de la carta
+     * @param {*} value Valor de la carta (2-10,J,Q,K,A)
+     */
+    getSpecificCard(suit, character) {
+        for (let i = 0; i < this.deck.length; i++) {
+            const card = this.deck[i];
+            if (card.suit === suit && card.character === character) {
+                this.deck.splice(i,1);
+                return card;
+            }
+        }
+        return null;
+    }
+
+    /**
      * Devuelve una mano de cartas 
      */
     getHand() {
@@ -150,8 +166,8 @@ class CardDeck {
  */
 class Hand {
     /**
-     * 
-     * @param {Array} cards 
+     * Crea una mano con las cartas indicadas por parámetro
+     * @param {Array de Card} cards 
      */
     constructor(cards){
         // Si no se reciben 5 cartas se lanza error
@@ -160,10 +176,95 @@ class Hand {
         }
         this.cards = cards;
         // Valor en el ranking de la mano
-        this.cards.sort((a,b) => {
-            if (a.value < b.value) return a;
-            return b;
+        this.cards = this.cards.sort((a,b) => {
+            return a.value - b.value;
         })
+    }
+
+    /**
+     * @return {Object} Object representing the hand value.
+     */
+    evaluateHand() {
+        let value = {
+            hand: '',
+            topPair: 0,  // En caso de tener pareja o full
+            topPairB: 0, // En caso de dobles parejas
+            topThree: 0, // En caso de tener un trio o full
+            topFour: 0   // En caso de tener poker
+        }
+        // Jugadas posibles
+        let straightFlush, flush, straight;
+        // Tiene color?
+        flush = this.isFlush();
+        // Tiene escalera?
+        straight = this.isStraight();
+        // Tiene escalera de color?
+        straightFlush = false;
+        if (flush && straight) {
+            straightFlush = true;
+        }
+        // Calcular combinaciones
+        let combinations = this.hasCombinations();
+        combinations.forEach((value,key,map) => {
+            if (value === 2) {
+                if (pair) {
+                    doublePair = true;
+                    value.topPairB = key;
+                } else {
+                    topPair = key;
+                    value.pair = true;
+                }                
+            } else if (value === 3) {
+                three = true;
+                value.topThree = key;
+            } else if (value === 4) {
+                poker = true;
+                value.topFour = key;
+            }
+        });
+        // Tiene Full House?
+        fullHouse = false;
+        if (pair && three) {
+            fullHouse = true;
+        }
+    }
+
+    /**
+     * Indica si la mano tiene Color o no
+     * @return {Boolean} True = Color, False = No Color
+     */
+    isFlush() {
+        let suit = this.cards[0].suit;
+        for (let i = 1; i < this.cards.length; i++) {
+            if (this.cards[i].suit!==suit) {
+                return false
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Indica si la mano tiene escalera o no
+     * @return {Boolean} True = escalera, False = No Color
+     */
+    isStraight () {
+        return false;
+    }
+
+    /**
+     * 
+     */
+    hasCombinations() {
+        let aux = new Map();
+        for (let i = 0; i < this.cards.length; i++) {
+            const c = this.cards[i];
+            if (!aux.get(c.character)) {
+                aux.set(c.character, 1);
+            } else {
+                aux.set(c.character, aux.get(c.character) + 1);
+            }
+        }
+        return aux;
     }
 
     /**
@@ -208,10 +309,28 @@ class Poker {
 
     /**
      * Repartir cartas a los jugadores
+     * @param {Array} hands Parametro opcional, en caso de que no queramos generar manos aleatorias (uso para los tests)
      */
-    dealCards () {
+    dealCards (hands = undefined) {
         for (let i = 0; i < this.players.length; i++) {
-            this.players[i].hand = new Hand(this.deck.getHand());         
+            if (hands) {
+                if (hands[i].length===5 || hands.length !== this.players.length) {
+                    let cards = [];
+                    for (let j = 0; j < 5; j++) {
+                        let card = this.deck.getSpecificCard(hands[i][j][0],hands[i][j].slice(1,3)); // el slice 1,3 me permite obtener también las cartas con valor 10
+                        if (card) {
+                            cards.push(card);
+                        } else {
+                            throw 'La carta solicitada no está disponible en el mazo';
+                        }
+                    }
+                    this.players[i].hand = new Hand(cards);
+                } else {
+                    throw 'La mano recibida debe ser de 5 cartas, y se deben recibir tantas manos como jugadores haya en la partida';
+                }                
+            } else {
+                this.players[i].hand = new Hand(this.deck.getHand());
+            }
         }
     }
 
@@ -231,16 +350,14 @@ class Poker {
      * Chequear ganador de la mano
      */
     checkWinner() {
-        return `${this.players[0].name} - ${this.players[0].hand}`;
     }
 }
 
 try {
     let poker = new Poker('Isma', 'Tam');
-    poker.dealCards();
+    poker.dealCards([['♣A','♢A','♢Q','♢9','♠9'], ['♣10','♡K','♢4','♣3','♢2']]);
     console.log(poker.toString());
-    console.log('WINNER!');
-    console.log(poker.checkWinner());
+    console.log(poker.players[0].hand.evaluateHand());
 } catch (error) {
     console.log(error);
 }
