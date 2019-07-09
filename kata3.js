@@ -24,7 +24,7 @@ const Ranking = {
 }
 
 /**
- * 
+ * Clase que representa una carta del juego de poker
  */
 class Card {
 
@@ -145,6 +145,9 @@ class CardDeck {
     }
 }
 
+/**
+ * Clase que representa una mano de poker
+ */
 class Hand {
     /**
      * 
@@ -175,13 +178,69 @@ class Hand {
     }
 }
 
+/**
+ * Clase que representa un juego de poker
+ */
+class Poker {
+    /**
+     * Constructor del juego de poker
+     * @param {int} players Array de jugadores
+     */
+    constructor(...players) {
+        this.players = [];
+        for (let i = 0; i < players.length; i++) {
+            this.players.push({
+                name: players[i],
+                score: 0,
+                hand: null
+            })
+        }
+        this.shuffle();
+    }
+
+    /**
+     * Generar el mazo de cartas y mezclarlas
+     */
+    shuffle() {
+        this.deck = new CardDeck();
+        this.deck.shuffle();
+    }
+
+    /**
+     * Repartir cartas a los jugadores
+     */
+    dealCards () {
+        for (let i = 0; i < this.players.length; i++) {
+            this.players[i].hand = new Hand(this.deck.getHand());         
+        }
+    }
+
+    /**
+     * Obtener manos de los jugadores
+     */
+    toString() {
+        let result = '';
+        for (let i = 0; i < this.players.length; i++) {
+            const p = this.players[i];
+            result += `${this.players[i].name} - ${this.players[i].hand}\n\r`;
+        }
+        return result;
+    }
+
+    /**
+     * Chequear ganador de la mano
+     */
+    checkWinner() {
+        return `${this.players[0].name} - ${this.players[0].hand}`;
+    }
+}
+
 try {
-    let baraja = new CardDeck('P');
-    baraja.shuffle();
-    let hand1 = new Hand(baraja.getHand());
-    let hand2 = new Hand(baraja.getHand());
-    console.log(`Hand 1: ${hand1.toString()}`);
-    console.log(`Hand 2: ${hand2.toString()}`);
+    let poker = new Poker('Isma', 'Tam');
+    poker.dealCards();
+    console.log(poker.toString());
+    console.log('WINNER!');
+    console.log(poker.checkWinner());
 } catch (error) {
     console.log(error);
 }
