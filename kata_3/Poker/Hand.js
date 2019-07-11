@@ -19,22 +19,35 @@ module.exports = class Hand {
         this.cards = this.cards.sort((a,b) => {
             return a.value - b.value;
         })
+        // Valor de la mano. Lo inicializo a cero para que sea entendible lo que se maneja en este objeto,
+        // y luego llamo a evaluate hand
+        this.value = {
+            description: '',    // Ranking de mano en descriptivo
+            rank: 0,            // Ranking de mano en valor
+            topPair: 0,         // En caso de tener pareja o full
+            topPairB: 0,        // En caso de dobles parejas
+            topThree: 0,        // En caso de tener un trio o full
+            topFour: 0,         // En caso de tener poker
+            highCard: 0,        // Carta más alta de todas (para deshacer un empate a escaleras)
+            totalSum: 0         // Cuenta el punteo total de la mano (sin tener en cuenta ranking)
+        }
+        this.evaluateHand();
     }
 
     /**
      * @return {Object} Object representing the hand value.
      */
     evaluateHand() {
-        let handValue = {
-            description: '',    // Ranking de mano en descriptivo
-            value: 0,           // Ranking de mano en valor
-            topPair: 0,         // En caso de tener pareja o full
-            topPairB: 0,        // En caso de dobles parejas
-            topThree: 0,        // En caso de tener un trio o full
-            topFour: 0          // En caso de tener poker
-        }
         // Posibles manos que tenemos:
         let straightFlush, poker, fullHouse, flush, straight, three, doublePair, pair;
+        // TotalSum (lo utilizo para desempatar cualquier jugada que desempata por carta alta)
+        // Doy a cada carta (en orden de valor mayor a menor) un peso más alto cuanto más alta es la carta
+        for (let i = 4; i >= 0; i--) {
+            const c = this.cards[i];
+            this.value.totalSum += (c.value * Math.pow(10, i * 2));
+        }
+        // Carta más alta? (Sólo la utilizo para desempatar la escalera)
+        this.value.highCard = this.cards[4].value;
         // Tiene color?
         flush = this.isFlush();
         // Tiene escalera?
@@ -50,51 +63,50 @@ module.exports = class Hand {
             if (value === 2) {
                 if (pair) {
                     doublePair = true;
-                    handValue.topPairB = key;
+                    this.value.topPairB = key;
                 } else {
                     pair = true;
-                    handValue.topPair = key;   
+                    this.value.topPair = key;   
                 }
             } else if (value === 3) {
                 three = true;
-                handValue.topThree = key;
+                this.value.topThree = key;
             } else if (value === 4) {
                 poker = true;
-                handValue.topFour = key;
+                this.value.topFour = key;
             }
         });
         // Tiene Full House?
         fullHouse = pair && three;
         // Cual es la mano más valiosa?
         if (straightFlush) {
-            handValue.description = Object.getOwnPropertyNames(Ranking)[0];
-            handValue.value = Ranking.STRAIGHT_FLUSH;
+            this.value.description = Object.getOwnPropertyNames(Ranking)[0];
+            this.value.rank = Ranking.STRAIGHT_FLUSH;
         } else if (poker) {
-            handValue.description = Object.getOwnPropertyNames(Ranking)[1];
-            handValue.value = Ranking.POKER;
+            this.value.description = Object.getOwnPropertyNames(Ranking)[1];
+            this.value.rank = Ranking.POKER;
         } else if (fullHouse) {
-            handValue.description = Object.getOwnPropertyNames(Ranking)[2];
-            handValue.value = Ranking.FULL_HOUSE;
+            this.value.description = Object.getOwnPropertyNames(Ranking)[2];
+            this.value.rank = Ranking.FULL_HOUSE;
         } else if (flush) {
-            handValue.description = Object.getOwnPropertyNames(Ranking)[3];
-            handValue.value = Ranking.FLUSH;
+            this.value.description = Object.getOwnPropertyNames(Ranking)[3];
+            this.value.rank = Ranking.FLUSH;
         } else if (straight) {
-            handValue.description = Object.getOwnPropertyNames(Ranking)[4];
-            handValue.value = Ranking.STRAIGHT;
+            this.value.description = Object.getOwnPropertyNames(Ranking)[4];
+            this.value.rank = Ranking.STRAIGHT;
         } else if (three) {
-            handValue.description = Object.getOwnPropertyNames(Ranking)[5];
-            handValue.value = Ranking.THREE;
+            this.value.description = Object.getOwnPropertyNames(Ranking)[5];
+            this.value.rank = Ranking.THREE;
         } else if (doublePair) {
-            handValue.description = Object.getOwnPropertyNames(Ranking)[6];
-            handValue.value = Ranking.DOUBLE_PAIR;
+            this.value.description = Object.getOwnPropertyNames(Ranking)[6];
+            this.value.rank = Ranking.DOUBLE_PAIR;
         } else if (pair) {
-            handValue.description = Object.getOwnPropertyNames(Ranking)[7];
-            handValue.value = Ranking.PAIR;
+            this.value.description = Object.getOwnPropertyNames(Ranking)[7];
+            this.value.rank = Ranking.PAIR;
         } else {
-            handValue.description = Object.getOwnPropertyNames(Ranking)[8];
-            handValue.value = Ranking.HIGH_CARD;
+            this.value.description = Object.getOwnPropertyNames(Ranking)[8];
+            this.value.rank = Ranking.HIGH_CARD;
         }
-        return handValue;
     }
 
     /**
@@ -133,10 +145,10 @@ module.exports = class Hand {
         let aux = new Map();
         for (let i = 0; i < this.cards.length; i++) {
             const c = this.cards[i];
-            if (!aux.get(c.character)) {
-                aux.set(c.character, 1);
+            if (!aux.get(c.value)) {
+                aux.set(c.value, 1);
             } else {
-                aux.set(c.character, aux.get(c.character) + 1);
+                aux.set(c.value, aux.get(c.value) + 1);
             }
         }
         return aux;

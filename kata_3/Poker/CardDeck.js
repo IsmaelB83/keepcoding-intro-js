@@ -47,13 +47,16 @@ module.exports = class CardDeck {
   
     /**
      * Extrae una carta random y la devuelve
-     * @return {Card} Carta random devuelta
+     * @return {Card} Carta random devuelta. O null en caso de no haber más cartas
      */
     getCard() {
-        let i = Math.floor(Math.random() * this.deck.length);
-        let card = this.deck[i];
-        this.deck.splice(i,1);
-        return card;
+        if (this.deck.length > 0) {
+            let i = Math.floor(Math.random() * this.deck.length);
+            let card = this.deck[i];
+            this.deck.splice(i,1);
+            return card;
+        }
+        return null;
     }
 
     /**
@@ -77,7 +80,7 @@ module.exports = class CardDeck {
      */
     getHand() {
         let hand = [];
-        if (this.getNumCards()>=5) {
+        if (this.deck.length>=5) {
             hand.push(this.getCard());
             hand.push(this.getCard());
             hand.push(this.getCard());
@@ -86,14 +89,6 @@ module.exports = class CardDeck {
             return hand;
         }
         return null;
-    }
-
-    /**
-     * Devuelve el número de cartas restantes del mazo
-     * @return {int} Número de cartas restantes en el mazo
-     */
-    getNumCards () {
-        return this.deck.length;
     }
 
     /**
