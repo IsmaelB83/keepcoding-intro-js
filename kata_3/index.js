@@ -5,7 +5,7 @@ let Poker = require('./Poker/Poker');
 // Instancio la clase de poker con dos jugadores
 let poker = new Poker('Player 1', 'Player 2');
 
-// T1 - Resultado esperado: gana player 2 por carta alta A
+/* // T1 - Resultado esperado: gana player 2 por carta alta A
 console.log ('\nTEST 1');
 poker.dealCards([['♡2','♢3','♣5','♠9','♢K'], ['♠2','♡3','♣4','♠8','♡A']]);
 poker.printWinner();
@@ -83,7 +83,7 @@ for (let n = 11; n <= 20; n++) {
     poker.shuffle();
     poker.dealCards();
     poker.printWinner();    
-}
+} */
 
 // T21 - Resultado esperado: gana player 1 con escalera de color al 5
 console.log ('\nTEST 21');

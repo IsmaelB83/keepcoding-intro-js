@@ -129,10 +129,14 @@ module.exports = class Hand {
      */
     isStraight () {
         let card = this.cards[0];
-        for (let i = 1; i < this.cards.length; i++) {
-            if (card.value + 1 !== this.cards[i].value) {
+        for (let i = 1; i < 5; i++) {
+            if (card.value === 5 && i === 4 && this.cards[i].value === 14) {
+                // Escalera empezando por A (caso especial porque el A está al final del array, y con valor 14)
+                return true;
+            } else if (card.value + 1 !== this.cards[i].value) {
                 return false;
-            }
+            } 
+            card = this.cards[i];
         }
         return true;
     }
