@@ -4,7 +4,7 @@ let { Suits } = require('./common');
 /**
  * Clase para gestionar una baraja de cartas
  */
-module.exports = class CardDeck {
+module.exports = class Deck {
 
     /**
      * Constructor de una baraja de cartas
@@ -61,15 +61,18 @@ module.exports = class CardDeck {
 
     /**
      * Extrae la carta específica del mazo. Si no la encuentra devuelve null
-     * @param {*} suit Palo de la carta
-     * @param {*} value Valor de la carta (2-10,J,Q,K,A)
+     * @param {String} card Representación de la carta en formato NS (donde N = 2-9,T,J,Q,K,A; y S = C,H,S,D)
+     * @return {Card} Carta extraida del mazo (o null en caso de no encontrarla)
      */
-    getSpecificCard(suit, character) {
+    getSpecificCard(card) {
+        if (card.length !== 2) {
+            throw 'El formato de la carta recibida no es correcto';
+        }
         for (let i = 0; i < this.deck.length; i++) {
-            const card = this.deck[i];
-            if (card.suit === suit && card.character === character) {
+            const aux = this.deck[i];
+            if (aux.suit === card[1] && aux.character === card[0]) {
                 this.deck.splice(i,1);
-                return card;
+                return aux;
             }
         }
         return null;
@@ -97,7 +100,7 @@ module.exports = class CardDeck {
     toString() {
         let output = '';
         this.deck.forEach(card => {
-            output += `${card.suit}-${card.character} `;
+            output += `${card.toString()} `;
         });
         return output;
     }

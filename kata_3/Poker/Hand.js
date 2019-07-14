@@ -163,9 +163,7 @@ module.exports = class Hand {
      */
     toString() {
         let output = '';
-        this.cards.forEach(c => {
-            output += `${c.suit}-${c.character} `;
-        });
+        this.cards.forEach(c => output +=`${c.toString()} `);
         return output;
     }
 }

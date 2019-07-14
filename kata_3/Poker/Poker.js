@@ -1,11 +1,11 @@
 let Ranking = require('./common');
-let CardDeck = require('./CardDeck');
+let Deck = require('./Deck');
 let Hand = require('./Hand');
 
 /**
  * Clase que representa un juego de poker
  */
-module.exports = class PokerGame {
+module.exports = class Poker {
     /**
      * Constructor del juego de poker
      * @param {int} players Array de jugadores
@@ -18,7 +18,7 @@ module.exports = class PokerGame {
                 hand: null
             })
         }
-        this.deck = new CardDeck();
+        this.deck = new Deck();
     }
 
     /**
@@ -39,11 +39,11 @@ module.exports = class PokerGame {
                 if (hands[i].length===5 && hands.length === this.players.length) {
                     let cards = [];
                     for (let j = 0; j < 5; j++) {
-                        let card = this.deck.getSpecificCard(hands[i][j][0],hands[i][j].slice(1,3)); // el slice 1,3 me permite obtener también las cartas con valor 10
+                        let card = this.deck.getSpecificCard(hands[i][j]);
                         if (card) {
                             cards.push(card);
                         } else {
-                            throw `La carta solicitada ${hands[i][j][0]}${hands[i][j].slice(1,3)} ya no está disponible en el mazo`;
+                            throw `La carta solicitada ${hands[i][j]} no está disponible en el mazo`;
                         }
                     }
                     this.players[i].hand = new Hand(cards);
@@ -151,7 +151,7 @@ module.exports = class PokerGame {
         if (tie) {
             console.log(`El resultado es EMPATE!`);
         } else {
-            console.log(`El ganador es ${winner.name} con la mano ${winner.hand} `);            
+            console.log(`El ganador es ${winner.name} que tiene ${winner.hand.value.description} con la mano ${winner.hand} `);            
         }
     }
 }
